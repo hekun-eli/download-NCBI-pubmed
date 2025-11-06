@@ -1,0 +1,54 @@
+import os
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+
+# 配置文件路径
+# 配置链接文件，放在此处
+link_file = "/Users/link.txt"
+# 配置输出文件夹
+save_dir = "/Users/out"
+
+# 确保保存路径存在
+os.makedirs(save_dir, exist_ok=True)
+
+# 配置 Chrome 下载 PDF 而不是预览
+chrome_options = Options()
+prefs = {
+    "plugins.always_open_pdf_externally": True,   # 直接下载 PDF
+    "download.default_directory": save_dir,       # 下载目录
+    "download.prompt_for_download": False,        # 不弹窗
+}
+chrome_options.add_experimental_option("prefs", prefs)
+chrome_options.add_argument("--headless=new")    # 可去掉此行以可视化打开浏览器
+chrome_options.add_argument("--disable-gpu")
+
+# 启动浏览器
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+# 逐行读取并处理链接
+with open(link_file, "r") as f:
+    links = [line.strip() for line in f if line.strip()]
+
+print(f"📄 共 {len(links)} 条链接待下载...\n")
+
+for i, url in enumerate(links, 1):
+    print(f"📥 正在处理第 {i}/{len(links)} 条: {url}")
+
+    try:
+        driver.get(url)  # 打开链接
+        time.sleep(5)    # 等待跳转与下载开始
+
+        # 再等一会确保下载完成
+        time.sleep(8)
+    except Exception as e:
+        print(f"⚠️  下载失败: {url} -> {e}")
+    else:
+        print("✅ 下载完成")
+    finally:
+        time.sleep(3)  # 每个链接之间停顿，防止卡顿或被封
+
+driver.quit()
+print("\n🎉 全部任务完成！PDF 保存在:", save_dir)
