@@ -1,5 +1,12 @@
----
+根据错误提示，似乎是因为 YAML 文件的语法问题，通常是由于缩进或特殊字符的格式错误。通常来说，这个错误是因为不符合 YAML 格式的某一行导致的。你提供的内容是一个 Markdown 文件，可能是尝试将其用于 YAML 配置时出现了问题。
 
+从你提供的内容来看，**这并不是 YAML 文件，而是 Markdown 文档**。因此，如果你试图将其作为 YAML 文件使用，可能会遇到解析问题。请检查你使用的位置是否是正确的格式。
+
+如果你打算保持此内容作为 **README** 文件，确保它是 `.md` 格式，并且没有错误。
+
+### 示例：README.md 格式
+
+````markdown
 # PubMed PMC PDF 下载脚本
 
 ## 功能概述
@@ -9,8 +16,8 @@
 1. 从 PubMed 格式的文本文件中提取所有的 PMC 链接，并自动生成下载 PDF 的链接。
 2. 使用 **Selenium** 和 **Chrome** 自动下载每个生成的 PDF 文件。
 
-
 ### 使用步骤
+
 * 第一步：提取 PubMed 文本中的 PMC 链接，并生成对应的 PDF 下载链接。
 * 第二步：通过 Selenium 打开每个 PDF 链接并开始下载文件。
 
@@ -27,7 +34,7 @@
 
   ```bash
   pip install selenium webdriver-manager
-  ```
+````
 
 ## 脚本说明
 
@@ -130,6 +137,7 @@ download_with_selenium(OUTPUT_LINK_FILE, DOWNLOAD_DIR, headless=True)
 * 作者：Kun He
 * 电子邮件：[hekunhe98@126.com](mailto:hekunhe98@126.com)
 
----
+```
 
-### 你可以根据需要进一步修改或扩展此文档，适应更多的使用场景或错误处理。
+如果你仍然需要将其转为 YAML 格式用于配置，确保每行都严格遵循 YAML 的缩进规范。
+```
