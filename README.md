@@ -129,7 +129,3 @@ download_with_selenium(OUTPUT_LINK_FILE, DOWNLOAD_DIR, headless=True)
 * 作者：Kun He
 * 电子邮件：[hekunhe98@126.com](mailto:hekunhe98@126.com)
 
-```
-
-如果你仍然需要将其转为 YAML 格式用于配置，确保每行都严格遵循 YAML 的缩进规范。
-```
