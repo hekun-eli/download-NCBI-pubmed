@@ -1,0 +1,111 @@
+import os
+import time
+import threading
+from queue import Queue
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from tqdm import tqdm   # 用于进度条
+
+# ==============================
+# 基础配置
+# ==============================
+
+link_file = "/Users/hekun/Downloads/link.txt"
+save_dir = "/Users/hekun/Downloads/mcr-pcnR"
+failed_file = os.path.join(save_dir, "failed_links.txt")
+
+os.makedirs(save_dir, exist_ok=True)
+
+# 清空失败记录文件
+with open(failed_file, "w") as ff:
+    pass
+
+# 为多线程创建的 Queue
+task_queue = Queue()
+
+# 读取链接
+with open(link_file, "r") as f:
+    links = [line.strip() for line in f if line.strip()]
+
+total = len(links)
+for url in links:
+    task_queue.put(url)
+
+# 全局锁用于打印
+print_lock = threading.Lock()
+
+# ==============================
+# 创建 webdriver（每线程独立）
+# ==============================
+def create_driver():
+    chrome_options = Options()
+    prefs = {
+        "plugins.always_open_pdf_externally": True,
+        "download.default_directory": save_dir,
+        "download.prompt_for_download": False,
+    }
+    chrome_options.add_experimental_option("prefs", prefs)
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--disable-gpu")
+
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()),
+        options=chrome_options
+    )
+    return driver
+
+
+# ==============================
+# 下载任务
+# ==============================
+def worker(progress_bar):
+    driver = create_driver()
+
+    while not task_queue.empty():
+        url = task_queue.get()
+
+        # 打印信息（加锁避免多线程冲突）
+        with print_lock:
+            short_url = url if len(url) < 80 else url[:80] + "..."
+            print(f"\n📥 开始处理: {short_url}")
+            print("⏳ 本条状态: 正在下载中...")
+
+        try:
+            driver.get(url)    # ✅ 完全不改动
+            time.sleep(5)      # ✅ 完全不改动
+            time.sleep(8)      # ✅ 完全不改动
+
+        except Exception as e:
+            with print_lock:
+                print(f"❌ 本条状态: 下载失败 -> {e}")
+                with open(failed_file, "a") as ff:
+                    ff.write(url + "\n")
+        else:
+            with print_lock:
+                print("✅ 本条状态: 下载完成")
+        finally:
+            time.sleep(3)      # ✅ 完全不改动
+            progress_bar.update(1)
+
+    driver.quit()
+
+
+# ==============================
+# 启动 3 个线程
+# ==============================
+print(f"📄 共 {total} 条链接，使用 3 个线程下载...\n")
+
+threads = []
+with tqdm(total=total, desc="总体进度", ncols=90) as pbar:
+    for _ in range(3):  # ✅ 固定 3 线程
+        t = threading.Thread(target=worker, args=(pbar,))
+        t.start()
+        threads.append(t)
+
+    for t in threads:
+        t.join()
+
+print("\n🎉 全部任务完成！PDF 保存在:", save_dir)
+print(f"⚠️ 下载失败链接已记录在: {failed_file}")
